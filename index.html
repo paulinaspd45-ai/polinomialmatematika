@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MPI Horner – Pembagian Polinomial</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Exo+2:wght@400;600&display=swap" rel="stylesheet">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']]}}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--ink:#14224d;--sky:#25b4f5;--vio:#7a3cf0;--sun:#ffc933;--mint:#22d6a0;--pink:#ff5d8f;--card:#ffffffee;box-sizing:border-box}
+*{box-sizing:inherit}
+html,body{margin:0;height:100%;background:#0d1b4c;font-family:'Exo 2',system-ui,sans-serif;color:var(--ink)}
+body{display:grid;place-items:center;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.stage{position:relative;width:min(100%,1280px);aspect-ratio:16/9;max-height:100vh;overflow:hidden;background:radial-gradient(circle at 15% 20%,#6ee7ff 0,transparent 40%),radial-gradient(circle at 85% 80%,#ffb3e6 0,transparent 45%),linear-gradient(135deg,#25b4f5,#7a3cf0);perspective:1200px}
+@media(max-width:760px),(max-aspect-ratio:1/1){.stage{aspect-ratio:auto;height:100vh;height:100dvh}}
+.scr{position:absolute;inset:0;padding:clamp(14px,3vw,36px);padding-top:clamp(52px,6vw,64px);overflow:auto;display:none}
+.scr.on{display:block}
+.scr.mid{display:none;place-items:center;text-align:center}.scr.mid.on{display:grid}
+h1,h2,h3{font-family:'Baloo 2',sans-serif;margin:.2em 0}
+h2{color:#fff;font-size:clamp(24px,3.4vw,40px);text-shadow:0 3px 0 #4a1fb0}
+.fl{position:absolute;font-family:'Baloo 2';font-weight:800;color:#fff;opacity:.28;animation:fl 7s ease-in-out infinite;pointer-events:none}
+@keyframes fl{50%{transform:translateY(-22px) rotateY(180deg)}}
+.ti{font-size:clamp(34px,7.4vw,92px);font-weight:800;color:#fff;line-height:1;text-shadow:0 4px 0 #4a1fb0,0 10px 0 #2b0f78,0 18px 30px #0006;transform:rotateX(14deg)}
+.ti span{display:inline-block;animation:bn 1.6s ease-in-out infinite}
+@keyframes bn{40%{transform:translateY(-14px) scale(1.12);color:var(--sun)}}
+.sub{color:#fff;font-size:clamp(14px,2vw,24px);margin:18px 0 30px}
+.btn{font-family:'Baloo 2';font-weight:800;font-size:clamp(15px,1.8vw,20px);border:0;border-radius:16px;padding:.55em 1.2em;color:#3a2200;background:var(--sun);box-shadow:0 7px 0 #c98f00,0 12px 18px #0004;cursor:pointer;transition:transform .1s,box-shadow .1s}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(5px);box-shadow:0 2px 0 #c98f00}
+.btn:focus-visible,select:focus-visible,input:focus-visible,.chip:focus-visible{outline:4px solid #fff;outline-offset:2px}
+.btn.b{background:var(--mint);box-shadow:0 7px 0 #0a936e,0 12px 18px #0004;color:#04382a}
+.btn.p{background:var(--pink);box-shadow:0 7px 0 #b02256,0 12px 18px #0004;color:#fff}
+.go{font-size:clamp(24px,3.6vw,44px);padding:.5em 1.6em;animation:pu 1.4s ease-in-out infinite}
+@keyframes pu{50%{transform:scale(1.09)}}
+.card{background:var(--card);border-radius:22px;padding:clamp(14px,2vw,26px);margin:0 auto 16px;max-width:980px;box-shadow:0 8px 0 #0003,0 18px 30px #0003;text-align:left}
+.card h3{color:var(--vio)}
+.tilt{transform:rotateX(4deg)}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select{width:100%;font:inherit;padding:.6em .8em;border-radius:12px;border:3px solid #cfd8ff;background:#fff}
+.top{position:absolute;top:8px;left:10px;right:10px;display:flex;gap:8px;z-index:5;justify-content:space-between}
+.top .btn{font-size:15px;padding:.3em .9em;box-shadow:0 4px 0 #c98f00}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:980px;margin:0 auto}
+.menu .btn{padding:1em .5em;font-size:clamp(16px,2vw,22px)}
+table{border-collapse:collapse;margin:8px 0;max-width:100%}td,th{border:2px solid #b9c6ff;padding:6px 14px;text-align:center}th{background:#e8edff}
+.sc{overflow-x:auto}
+.q{background:#f3f6ff;border-radius:16px;padding:12px 14px;margin:12px 0;border:2px solid #d7defc}
+.slot{display:inline-block;min-width:90px;min-height:38px;border:3px dashed var(--vio);border-radius:10px;vertical-align:middle;padding:2px;background:#fff}
+.pool{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{display:inline-block;padding:6px 14px;border-radius:12px;background:var(--sky);color:#fff;font-weight:600;cursor:grab;box-shadow:0 3px 0 #0b77b0;user-select:none;margin:2px}
+.chip.sel{outline:3px solid var(--sun)}
+.row{display:flex;gap:10px;align-items:center;margin:6px 0;flex-wrap:wrap}.row>*:first-child{flex:1 1 140px}
+.ol{display:flex;gap:6px;align-items:center;background:#fff;border:2px solid #cfd8ff;border-radius:12px;padding:6px 10px;margin:5px 0}.ol span{flex:1}
+.ol button{border:0;background:var(--vio);color:#fff;border-radius:8px;width:34px;height:30px;cursor:pointer}
+.fb{margin-top:8px;padding:8px 12px;border-radius:12px;display:none;background:#fff}.fb.on{display:block}
+.ok{color:#0a8a63}.no{color:#c41f4d}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:.55em .9em;border-radius:12px;border:3px solid #cfd8ff;background:#fff;font:inherit;cursor:pointer}
+.opt:hover{border-color:var(--sky)}.opt.right{background:#c9f7e6;border-color:var(--mint)}.opt.wrong{background:#ffd3de;border-color:var(--pink)}
+.big{font-family:'Baloo 2';font-size:clamp(56px,10vw,110px);font-weight:800;color:var(--vio)}
+.cen{text-align:center}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head><body>
+<main class="stage" id="st">
+<div class="top" id="top" style="display:none"><button class="btn" onclick="go('menu')">🗺 Menu</button><button class="btn b" id="snd" onclick="tog()">🔊 Musik</button></div>
+
+<section class="scr mid on" id="cover">
+<span class="fl" style="left:6%;top:12%;font-size:80px">x³</span><span class="fl" style="right:8%;top:18%;font-size:64px;animation-delay:1s">Σ</span><span class="fl" style="left:12%;bottom:12%;font-size:70px;animation-delay:2s">÷</span><span class="fl" style="right:10%;bottom:14%;font-size:90px;animation-delay:3s">P(x)</span>
+<div><div class="sub">Media Pembelajaran Interaktif • Matematika Kelas XI • Fase F</div>
+<h1 class="ti" id="ti">METODE HORNER</h1>
+<div class="sub">Pembagian Polinomial Jadi Lebih Cepat dan Seru</div>
+<button class="btn go" onclick="start()">▶ MULAI</button></div></section>
+
+<section class="scr" id="idn"><h2 class="cen">Identitas Peserta Didik</h2>
+<div class="card tilt" style="max-width:560px"><label for="nm">Nama Lengkap</label><input id="nm" autocomplete="name" placeholder="Tulis nama lengkapmu">
+<label for="kl">Kelas</label><input id="kl" value="XI">
+<label for="sk">Sekolah</label><input id="sk" value="SMA Yos Soedarso Masohi">
+<p id="er" class="no"></p><div class="cen"><button class="btn b" onclick="idok()">Lanjut ke Menu</button></div></div></section>
+
+<section class="scr" id="menu"><h2 class="cen" id="hi">Menu Utama</h2>
+<div class="menu"><button class="btn" onclick="go('tp')">🎯 Tujuan Pembelajaran</button><button class="btn b" onclick="go('mat')">📘 Materi</button><button class="btn p" onclick="go('tan')">🧩 Tantangan Interaktif</button><button class="btn" onclick="go('ev')">📝 Evaluasi</button><button class="btn b" onclick="go('hs')">🏆 Skor &amp; Sertifikat</button><button class="btn p" onclick="go('dev')">👩‍🏫 Pengembang</button></div></section>
+
+<section class="scr" id="tp"><h2 class="cen">Tujuan Pembelajaran</h2><div class="card tilt"><h3>Setelah belajar, kamu mampu:</h3><p>Menggunakan metode Horner untuk melakukan pembagian polinomial dan menuliskan hasilnya ke dalam bentuk algoritma pembagian.</p><p>$P(x)=(x-k)\,H(x)+S$</p></div></section>
+
+<section class="scr" id="mat"><h2 class="cen">Materi: Pembagian dengan Metode Horner</h2>
+<div class="card"><h3>1. Algoritma pembagian</h3><p>Jika polinomial $P(x)$ dibagi pembagi linear $(x-k)$, maka $P(x)=(x-k)\,H(x)+S$, dengan $H(x)$ hasil bagi (derajatnya satu lebih rendah) dan $S$ sisa (sebuah konstanta). Metode Horner menghitung $H(x)$ dan $S$ hanya dengan perkalian dan penjumlahan bilangan.</p></div>
+<div class="card"><h3>2. Contoh: $2x^3-3x^2+x+5$ dibagi $(x-2)$</h3><div class="sc"><table><tr><th>k = 2</th><td>2</td><td>−3</td><td>1</td><td>5</td></tr><tr><th></th><td></td><td>4</td><td>2</td><td>6</td></tr><tr><th>Hasil</th><td>2</td><td>1</td><td>3</td><td><b>11</b></td></tr></table></div>
+<p>Turunkan 2; $2\cdot2+(-3)=1$; $1\cdot2+1=3$; $3\cdot2+5=11$. Jadi $H(x)=2x^2+x+3$, $S=11$.</p><p><b>Algoritma:</b> $2x^3-3x^2+x+5=(x-2)(2x^2+x+3)+11$</p></div>
+<div class="card"><h3>3. Coba sendiri</h3><label for="co">Koefisien (pisahkan koma)</label><input id="co" value="1,2,-5,6"><label for="kk">Nilai k (pembagi $x-k$)</label><input id="kk" value="1"><p><button class="btn b" onclick="hor()">Hitung Horner</button></p><div id="ho" class="sc"></div></div>
+<div class="card"><h3>4. Hal penting</h3><p>• Pembagi $(x+3)$ berarti $k=-3$. • Pembagi $(ax-b)$: pakai $k=\frac{b}{a}$, lalu bagi hasil bagi dengan $a$. • Teorema Sisa: $S=P(k)$. • Jika $S=0$, maka $(x-k)$ adalah faktor $P(x)$.</p></div></section>
+
+<section class="scr" id="tan"><h2 class="cen">Tantangan Interaktif</h2><div id="tq"></div></section>
+<section class="scr" id="ev"><h2 class="cen">Evaluasi</h2><div id="eq"></div></section>
+
+<section class="scr mid" id="hs"><div class="card cen"><h3>Skor Akhir</h3><div class="big" id="sk2">0</div><p id="dt"></p><p id="pr"></p>
+<button class="btn b" onclick="pdf()">⬇ Unduh Sertifikat (PDF)</button> <button class="btn p" onclick="go('menu')">🗺 Kembali ke menu</button><p id="ms"></p></div></section>
+
+<section class="scr mid" id="dev"><div class="card cen"><h3>Pengembang</h3><p><b>Paulina Edeu, S.Pd.</b><br>Guru Mata Pelajaran Matematika<br>SMA Yos Soedarso Masohi</p><p>MPI untuk peserta didik Kelas XI Fase F</p></div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),T=s=>s.replace(/\$(.+?)\$/g,'\\($1\\)'),R={},U={};
+let AC,on=true,mt,sel=null,drag=null;
+function sfx(f=660,d=.12){if(!on)return;try{AC=AC||new AudioContext();AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=f;g.gain.value=.07;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function music(){clearInterval(mt);if(!on)return;const n=[262,330,392,523,392,330,294,349,440,587,440,349];let i=0;mt=setInterval(()=>sfx(n[i++%n.length]/2,.4),340)}
+function tog(){on=!on;$('#snd').textContent=on?'🔊 Musik':'🔇 Musik';music()}
+function go(id){sfx(880,.1);document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));const e=$('#'+id);e.classList.add('on');e.scrollTop=0;$('#top').style.display=id=='cover'?'none':'flex';if(id=='hs')score();ty(e)}
+function ty(e){window.MathJax&&MathJax.typesetPromise&&MathJax.typesetPromise([e]).catch(()=>{})}
+function start(){on=true;music();go('idn')}
+function idok(){const n=$('#nm').value.trim();if(!n){$('#er').textContent='Isi nama lengkap dulu, ya.';return}$('#er').textContent='';U.n=n;U.k=$('#kl').value.trim()||'XI';U.s=$('#sk').value.trim();$('#hi').textContent='Halo, '+n.split(' ')[0]+'! Pilih menu';go('menu')}
+$('#ti').innerHTML=[...'METODE HORNER'].map((c,i)=>c==' '?' ':`<span style="animation-delay:${i*.09}s">${c}</span>`).join('');
+document.querySelectorAll('.scr').forEach(e=>{if(e.id!='cover')e.innerHTML=T(e.innerHTML)});
+/* Horner */
+function pl(c){let s='';const n=c.length-1;c.forEach((v,i)=>{const p=n-i;if(!v)return;const a=Math.abs(v);let t=(a==1&&p>0?'':a)+(p>1?'x^{'+p+'}':p==1?'x':'');s+=(v<0?'-':(s?'+':''))+t});return s||'0'}
+function hor(){const c=$('#co').value.split(',').map(Number),k=Number($('#kk').value);if(c.length<2||c.some(isNaN)||isNaN(k)){$('#ho').textContent='Isi koefisien dan k dengan angka.';return}const r=[c[0]],m=[''];for(let i=1;i<c.length;i++){m.push(+(r[i-1]*k).toFixed(4));r.push(+(c[i]+r[i-1]*k).toFixed(4))}const S=r.pop(),row=a=>a.map(x=>`<td>${x}</td>`).join('');
+$('#ho').innerHTML=`<table><tr><th>k=${k}</th>${row(c)}</tr><tr><th></th>${row(m)}</tr><tr><th>Hasil</th>${row(r)}<td><b>${S}</b></td></tr></table><p>\\(${pl(c)}=(x${k<0?'+':'-'}${Math.abs(k)})(${pl(r)})+${S<0?'('+S+')':S}\\)</p>`;ty($('#ho'))}
+/* Tantangan */
+const DD=[["Kios kue mencatat pendapatan $P(x)=x^3+2x^2-5x+6$ (ratusan ribu rupiah) pada hari ke-$x$. Dengan Horner untuk pembagi $(x-1)$ diperoleh 1, 3, −2, 4. Sisa pembagian adalah …",["4","6","3","-2"],"4","Skema: 1 → 1·1+2=3 → 3·1−5=−2 → −2·1+6=4. Sisa = 4 = P(1)."],
+["Volume tangki air $V(x)=x^3+5x^2+2x-8$ dibagi $(x+2)$. Bilangan $k$ pada skema Horner adalah …",["-2","2","1","0"],"-2","$x+2=x-(-2)$, jadi k = −2."],
+["Produksi roti $P(x)=2x^3-3x^2+x+5$ dibagi $(x-2)$. Hasil bagi $H(x)$ adalah …",["2x²+x+3","2x²−x+3","2x²+x−3","x²+2x+3"],"2x²+x+3","Horner k=2: 2, 1, 3, sisa 11. Maka H(x)=2x²+x+3."]];
+const MT=[["Pada $P(x)=(x-2)(2x^2+x+3)+11$ (model laba harian), pasangkan bagian dengan perannya.",[["$(x-2)$","Pembagi"],["$2x^2+x+3$","Hasil bagi"],["$11$","Sisa"]],"Bentuk P(x)=(pembagi)(hasil bagi)+sisa."],
+["Saat menghitung selisih suhu dengan Horner, pasangkan pembagi dengan nilai k.",[["$(x-3)$","k = 3"],["$(x+4)$","k = −4"],["$(2x-1)$","k = 1/2"]],"$x-k$: (x+4)=(x−(−4)); (2x−1)=2(x−1/2)."],
+["Biaya $C(x)=x^2+3x+1$ (juta rupiah). Sisa pembagian oleh $(x-k)$ sama dengan $C(k)$. Pasangkan:",[["$(x-1)$","5"],["$(x-2)$","11"],["$(x+1)$","-1"]],"C(1)=5, C(2)=11, C(−1)=1−3+1=−1."]];
+const OR=[["Urutkan langkah metode Horner.",["Tulis koefisien P(x) dan bilangan k","Turunkan koefisien pertama","Kalikan k dengan hasil sebelumnya, jumlahkan dengan koefisien berikutnya","Ulangi sampai koefisien terakhir","Baca hasil bagi dan sisa dari baris bawah"],"Horner selalu dimulai dari koefisien dan k, lalu kalikan-jumlahkan berulang."],
+["Pak Doni menghitung $x^3+2x^2-5x+6$ dibagi $(x-1)$. Urutkan perhitungannya:",["Turunkan 1","1·1+2=3","3·1+(−5)=−2","−2·1+6=4 (sisa)"],"Setiap langkah memakai hasil langkah sebelumnya."],
+["Menyusun algoritma untuk $P(x)=2x^3-3x^2+x+5$ dan $(x-2)$. Urutkan:",["Tulis koefisien 2, −3, 1, 5 dan k=2","Lakukan Horner: 2, 1, 3, 11","Tentukan H(x)=2x²+x+3 dan S=11","Tulis P(x)=(x−2)(2x²+x+3)+11"],"Hitung dulu, baru tulis algoritma pembagian."]];
+function fb(e,ok,key,ans,ex,id){R[id]=ok;sfx(ok?988:220,.25);e.innerHTML=`<b class="${ok?'ok':'no'}">${ok?'✔ Benar!':'✘ Belum tepat.'}</b> Kunci: ${ans}<br>Pembahasan: ${ex}`;e.classList.add('on');ty(e)}
+function put(sl,ch){if(sl.firstChild)sl.parentNode.parentNode.querySelector('.pool').appendChild(sl.firstChild);sl.appendChild(ch);sel=null;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'))}
+let h='<h3 style="color:#fff">A. Seret &amp; Lepas (di layar sentuh: ketuk pilihan, lalu ketuk kotak)</h3>';
+DD.forEach((q,i)=>h+=`<div class="q" id="d${i}"><p>${i+1}. ${q[0]}</p><div>Jawab: <span class="slot" tabindex="0"></span></div><div class="pool">${q[1].map(o=>`<span class="chip" draggable="true" tabindex="0" data-v="${o}">${o}</span>`).join('')}</div><p><button class="btn b" onclick="cd(${i})">Periksa</button></p><div class="fb"></div></div>`);
+h+='<h3 style="color:#fff">B. Menjodohkan</h3>';
+MT.forEach((q,i)=>{const op=q[1].map(p=>p[1]).reverse();h+=`<div class="q" id="m${i}"><p>${i+1}. ${q[0]}</p>${q[1].map(p=>`<div class="row"><span>${p[0]}</span><select aria-label="pasangan"><option value="">Pilih…</option>${op.map(o=>`<option>${o}</option>`).join('')}</select></div>`).join('')}<p><button class="btn b" onclick="cm(${i})">Periksa</button></p><div class="fb"></div></div>`;});
+h+='<h3 style="color:#fff">C. Mengurutkan</h3>';
+OR.forEach((q,i)=>{h+=`<div class="q" id="o${i}"><p>${i+1}. ${q[0]}</p><div class="ls"></div><p><button class="btn b" onclick="co(${i})">Periksa</button></p><div class="fb"></div></div>`});
+$('#tq').innerHTML=T(h);
+function ol(i){const q=OR[i],L=$('#o'+i+' .ls'),idx=q[1].map((_,j)=>j),a=idx.slice(2).concat(idx.slice(0,2));L.innerHTML=a.map(j=>`<div class="ol" data-j="${j}"><span>${q[1][j]}</span><button aria-label="naik">▲</button><button aria-label="turun">▼</button></div>`).join('');L.onclick=e=>{const b=e.target.closest('button');if(!b)return;const r=b.parentNode;b.textContent=='▲'?r.previousElementSibling&&r.parentNode.insertBefore(r,r.previousElementSibling):r.nextElementSibling&&r.parentNode.insertBefore(r.nextElementSibling,r);sfx(520,.06)}}
+OR.forEach((_,i)=>ol(i));
+document.querySelectorAll('.chip').forEach(c=>{c.ondragstart=()=>drag=c;c.onclick=()=>{sel=c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',x==c));sfx(600,.05)}});
+document.querySelectorAll('.slot').forEach(s=>{s.ondragover=e=>e.preventDefault();s.ondrop=e=>{e.preventDefault();drag&&put(s,drag)};s.onclick=()=>{if(sel)put(s,sel);else if(s.firstChild)s.parentNode.parentNode.querySelector('.pool').appendChild(s.firstChild)}});
+function cd(i){const q=DD[i],c=$('#d'+i+' .slot').firstChild;fb($('#d'+i+' .fb'),!!c&&c.dataset.v==q[2],0,T('<b>'+q[2]+'</b>'),T(q[3]),'t'+i)}
+function cm(i){const q=MT[i],s=[...document.querySelectorAll('#m'+i+' select')];fb($('#m'+i+' .fb'),s.every((x,j)=>x.value==q[1][j][1]),0,'<b>'+q[1].map(p=>p[0]+' → '+p[1]).join('; ')+'</b>',T(q[2]),'t'+(3+i))}
+function co(i){const q=OR[i],o=[...document.querySelectorAll('#o'+i+' .ol')].map(x=>+x.dataset.j);fb($('#o'+i+' .fb'),o.every((v,j)=>v==j),0,'<b>'+q[1].map((s,j)=>(j+1)+') '+s).join(' → ')+'</b>',T(q[2]),'t'+(6+i))}
+/* Evaluasi */
+const tb=(r)=>'<div class="sc"><table>'+r.map((x,i)=>'<tr>'+x.map(c=>i?`<td>${c}</td>`:`<th>${c}</th>`).join('')+'</tr>').join('')+'</table></div>';
+const PG=[["<b>Wacana.</b> Kios Bu Sari mencatat pendapatan harian (ribuan rupiah) dengan model $P(x)=2x^3-3x^2+x+5$, $x$ = hari ke-. Pembagian oleh $(x-2)$ dipakai untuk menaksir sisa pendapatan.","Sisa pembagian $P(x)$ oleh $(x-2)$ adalah …",["3","5","9","11","13"],3,"Horner k=2: 2, 1, 3, 11, sisa = 11. Cek: P(2)=16−12+2+5=11."],
+["<b>Tabel.</b> Skema Horner $x^3+2x^2-5x+6$ dibagi $(x-1)$:"+tb([["k=1","1","2","-5","6"],["","","1","3","-2"],["Hasil","1","3","-2","4"]]),"Hasil bagi dan sisanya adalah …",["$x^2+3x-2$ dan $4$","$x^2+3x-2$ dan $-4$","$x^2+2x-5$ dan $6$","$x^2+3x+2$ dan $4$","$x^2-3x-2$ dan $4$"],0,"Baris hasil: 1, 3, −2 adalah koefisien H(x)=x²+3x−2, dan angka terakhir 4 adalah sisa."],
+["<b>Wacana.</b> Hasil bagi dan sisa pembagian $P(x)=x^3-4x^2+x+6$ oleh $(x-3)$ dengan Horner adalah 1, −1, −2 dan sisa 0.","Algoritma pembagiannya ditulis …",["$(x+3)(x^2-x-2)+0$","$(x-3)(x^2-x-2)+6$","$(x-3)(x^2-x+2)+0$","$(x-3)(x^2-x-2)+0$","$(x-3)(x^2+x-2)+0$"],3,"Bentuk P(x)=(x−k)H(x)+S dengan k=3, H=x²−x−2, S=0. Karena S=0, (x−3) faktor P(x)."],
+["<b>Wacana.</b> Volume sebuah kotak $P(x)=2x^3+3x^2-4x+1$, dan tinggi ditentukan oleh pembagi $(2x-1)$.","Hasil bagi $P(x)$ oleh $(2x-1)$ adalah …",["$2x^2+4x-2$","$x^2+2x-1$","$x^2+2x+1$","$2x^2+3x-1$","$x^2-2x-1$"],1,"k=1/2: 2, 4, −2, sisa 0. Hasil bagi oleh (x−1/2) adalah 2x²+4x−2; karena 2x−1 = 2(x−1/2), bagi dengan 2 → x²+2x−1."],
+["<b>Grafik.</b> Sisa pembagian $P(x)=x^3-2x^2+3x-4$ oleh $(x-k)$ untuk k = 1, 2, 3:<br><svg viewBox='0 0 260 150' width='300' role='img' aria-label='Grafik sisa pembagian untuk k=1, 2, 3'><line x1='10' y1='100' x2='250' y2='100' stroke='#14224d' stroke-width='2'/><rect x='30' y='100' width='40' height='10' fill='#ff5d8f'/><rect x='100' y='90' width='40' height='10' fill='#25b4f5'/><rect x='170' y='30' width='40' height='70' fill='#22d6a0'/><g font-size='12' text-anchor='middle' fill='#14224d'><text x='50' y='125'>k=1</text><text x='120' y='125'>k=2</text><text x='190' y='125'>k=3</text><text x='50' y='140'>-2</text><text x='120' y='82'>2</text><text x='190' y='22'>14</text></g></svg>","Dengan Teorema Sisa, sisa pembagian $P(x)$ oleh $(x+1)$ adalah …",["-10","-4","-2","2","14"],0,"Sisa = P(−1) = −1−2−3−4 = −10 (k = −1). Pola grafik juga sesuai: P(1)=−2, P(2)=2, P(3)=14."]];
+const BS=[["Pembagian oleh $(x+3)$ dengan Horner memakai $k=3$.",false,"Salah. $x+3=x-(-3)$, sehingga k = −3."],["Jika sisa pembagian $P(x)$ oleh $(x-k)$ sama dengan 0, maka $(x-k)$ adalah faktor $P(x)$.",true,"Benar. Sisa 0 berarti P(k)=0, sehingga (x−k) faktor."],["Jika $P(x)$ berderajat 4 dibagi pembagi linear, hasil baginya berderajat 3.",true,"Benar. Derajat hasil bagi = derajat P − 1."]];
+const L='ABCDE';h='<h3 style="color:#fff">Pilihan Ganda</h3>';
+PG.forEach((q,i)=>h+=`<div class="card" id="p${i}"><p>${i+1}. ${q[0]}</p><p><b>${q[1]}</b></p>${q[2].map((o,j)=>`<button class="opt" data-j="${j}">${L[j]}. ${o}</button>`).join('')}<div class="fb"></div></div>`);
+h+='<h3 style="color:#fff">Benar atau Salah</h3>';
+BS.forEach((q,i)=>h+=`<div class="card" id="b${i}"><p>${i+1}. ${q[0]}</p><button class="opt" data-j="1">Benar</button><button class="opt" data-j="0">Salah</button><div class="fb"></div></div>`);
+$('#eq').innerHTML=T(h);
+document.querySelectorAll('#eq .card').forEach(c=>c.onclick=e=>{const b=e.target.closest('.opt');if(!b||c.dataset.d)return;c.dataset.d=1;const pg=c.id[0]=='p',i=+c.id.slice(1),v=+b.dataset.j,a=pg?PG[i][3]:+BS[i][1],ok=v==a;c.querySelectorAll('.opt').forEach(x=>{if(+x.dataset.j==a)x.classList.add('right')});if(!ok)b.classList.add('wrong');fb(c.querySelector('.fb'),ok,0,pg?L[a]:(a?'Benar':'Salah'),T(pg?PG[i][4]:BS[i][2]),'e'+c.id)});
+/* Skor & sertifikat */
+function sc(){const t=Object.keys(R).filter(k=>k[0]=='t'&&R[k]).length,e=Object.keys(R).filter(k=>k[0]=='e'&&R[k]).length;return{t,e,s:Math.round((t+e)/17*100)}}
+function pr(s){return s>=85?'Sangat Baik':s>=70?'Baik':s>=55?'Cukup':'Perlu Berlatih Lagi'}
+function score(){const x=sc();$('#sk2').textContent=x.s;$('#pr').textContent=`Tantangan ${x.t}/9 • Evaluasi ${x.e}/8 • Predikat: ${pr(x.s)}`;$('#dt').textContent=U.n?'Selamat, '+U.n+'!':'Isi identitas dulu di halaman awal.'}
+async function pdf(){if(!U.n){$('#ms').textContent='Isi nama lengkap dulu di halaman identitas.';return}const x=sc(),J=window.jspdf;if(!J){$('#ms').textContent='Pustaka PDF belum termuat. Periksa koneksi lalu coba lagi.';return}
+const d=new J.jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),W=297,C=(t,y,s,st='normal',c=[20,34,77])=>{d.setFont('helvetica',st);d.setFontSize(s);d.setTextColor(...c);d.text(t,W/2,y,{align:'center'})};
+d.setFillColor(238,247,255);d.rect(0,0,W,210,'F');d.setFillColor(122,60,240);d.rect(0,0,W,16,'F');d.setFillColor(37,180,245);d.rect(0,194,W,16,'F');d.setDrawColor(255,201,51);d.setLineWidth(1.6);d.rect(8,22,W-16,166);d.setDrawColor(122,60,240);d.setLineWidth(.5);d.rect(11,25,W-22,160);
+C('SERTIFIKAT',50,40,'bold',[122,60,240]);C('Penyelesaian Media Pembelajaran Interaktif',62,15,'bold');C('Matematika Kelas XI Fase F - Pembagian Polinomial dengan Metode Horner',70,11);C('diberikan kepada',84,12,'italic');C(U.n,100,30,'bold',[37,100,200]);d.setDrawColor(255,201,51);d.setLineWidth(.8);d.line(70,104,W-70,104);C(`Kelas ${U.k} - ${U.s}`,113,13);C('telah menyelesaikan seluruh kegiatan pembelajaran dan memperoleh skor akhir',124,12);
+d.setFillColor(255,93,143);d.circle(80,152,16,'F');C('',0,1);d.setFont('helvetica','bold');d.setFontSize(24);d.setTextColor(255,255,255);d.text(String(x.s),80,156,{align:'center'});d.setTextColor(20,34,77);d.setFontSize(12);d.setFont('helvetica','normal');d.text('Predikat: '+pr(x.s),105,150);d.text(`Tantangan ${x.t}/9 | Evaluasi ${x.e}/8`,105,158);
+const tg=new Date().toLocaleDateString('id-ID',{dateStyle:'long'});d.text('Masohi, '+tg,225,142,{align:'center'});d.text('Guru Mata Pelajaran Matematika',225,150,{align:'center'});d.setFont('helvetica','bold');d.text('Paulina Edeu, S.Pd.',225,172,{align:'center'});d.setLineWidth(.4);d.line(195,174,255,174);
+const fn='Sertifikat_'+U.n.replace(/\W+/g,'_')+'.pdf';try{const dl=window.claude&&await claude.use('downloads');dl?await dl.save({filename:fn,data:d.output('blob')}):d.save(fn);$('#ms').textContent='Sertifikat siap diunduh.'}catch(e){$('#ms').textContent=e&&e.code=='declined'?'Unduhan dibatalkan.':'Unduhan belum berhasil, coba lagi.'}}
+window.addEventListener('load',()=>ty(document.body));
+</script></body></html>
